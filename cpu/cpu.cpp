@@ -162,6 +162,42 @@ void cpu_step(CPU *cpu) {
             if ((a ^ b) & 0x80 && (a ^ (uint8_t)result) & 0x80) cpu->SR |= SR_O;
             break;
         }
+        case OP_LOAD: {
+            cpu->registers[rd] = cpu->memory[cpu->registers[rs1]];
+            break;
+        }
+        case OP_STORE: {
+            cpu->memory[cpu->registers[rd]] = cpu->registers[rs1];
+            break;
+        }
+        case OP_MOVE: {
+            cpu->registers[rd] = cpu->registers[rs1];
+            break;
+        }
+        case OP_PUSH: {
+            cpu->memory[cpu->SP] = cpu->registers[rs1];
+            if (cpu->SP == 0) {
+                cpu->halted = 1;
+                break;
+            }
+            cpu->SP -= 1;
+            break;
+        }
+        case OP_POP: {
+            if (cpu->SP == 0xFF) {
+                cpu->halted = 1;
+                break;
+            }
+            cpu->SP += 1;
+            cpu->registers[rd] = cpu->memory[cpu->SP];
+            break;
+        }
+        case OP_MVO: {
+            cpu->registers[rd] = cpu->OV;
+            break;
+        }
+
+
 
 
 
