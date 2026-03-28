@@ -1,6 +1,5 @@
 #include "cpu.h"
 #include "instructions.h"
-#include <cstdint>
 #include <string.h>
 
 void cpu_init(CPU *cpu) {
@@ -196,8 +195,62 @@ void cpu_step(CPU *cpu) {
             cpu->registers[rd] = cpu->OV;
             break;
         }
-
-
+        case OP_JUMP: {
+            if (imm % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            cpu->PC = imm;
+            break;
+        }
+        case OP_JUMPR: {
+            if (cpu->registers[rd] % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            cpu->PC = cpu->registers[rd];
+            break;
+        }
+        case OP_CALL: {
+            if (imm % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            cpu->LR = cpu->PC;
+            cpu->PC = imm;
+            break;
+        }
+        case OP_RET: {
+            cpu->PC = cpu->LR;
+            break;
+        }
+        case OP_JEQ: {
+            if (imm % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            if (cpu->SR & SR_Z) cpu->PC = imm;
+            
+            break;
+        }
+        case OP_JLT: {
+            if (imm % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            if (cpu->SR & SR_N) cpu->PC = imm;
+            
+            break;
+        }
+        case OP_JOV: {
+            if (imm % 2 != 0) {
+                cpu->halted = 1;
+                break;
+            }
+            if (cpu->SR & SR_O) cpu->PC = imm;
+            
+            break;
+        }
 
 
 
