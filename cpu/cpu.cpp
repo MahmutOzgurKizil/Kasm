@@ -251,7 +251,16 @@ void cpu_step(CPU *cpu) {
             
             break;
         }
-
+        case OP_OUT: {
+            // TODO
+            break;
+        }
+        case OP_IN: {
+            // TODO
+            break;
+        }
+        
+        
 
 
     }
