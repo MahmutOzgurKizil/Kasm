@@ -1,4 +1,6 @@
 #include "cpu.h"
+#include "instructions.h"
+#include <cstdint>
 #include <string.h>
 
 void cpu_init(CPU *cpu) {
@@ -42,8 +44,10 @@ void cpu_step(CPU *cpu) {
         case OP_SET:
             cpu->registers[rd] = imm;
             break;
-        case OP_ADD:
-            uint16_t result = (uint16_t) cpu->registers[rs1] + (uint16_t) cpu->registers[rs2];
+        case OP_ADD: {
+            uint8_t a = cpu->registers[rs1];
+            uint8_t b = cpu->registers[rs2];
+            uint16_t result = (uint16_t)a + (uint16_t)b;
             cpu->registers[rd] = result & 0xFF;
             cpu->OV = (result >> 8) & 0xFF;
 
@@ -51,8 +55,116 @@ void cpu_step(CPU *cpu) {
             if (result == 0) cpu->SR |= SR_Z;
             if (result & 0x80) cpu->SR |= SR_N;
             if (result > 0xFF) cpu->SR |= SR_O;
-
             break;
+        }
+        case OP_SUB: {
+            uint8_t a = cpu->registers[rs1];
+            uint8_t b = cpu->registers[rs2];
+            uint16_t result = (uint16_t)a - (uint16_t)b;
+            cpu->registers[rd] = result & 0xFF;
+
+            int8_t signed_result = (int8_t)(result & 0xFF);
+            cpu->SR = 0;
+            if (signed_result == 0) cpu->SR |= SR_Z;
+            if (signed_result < 0) cpu->SR |= SR_N;
+            if ((a ^ b) & 0x80 && (a ^ (uint8_t)result) & 0x80) cpu->SR |= SR_O;
+            break;
+        }
+        case OP_MUL: {
+            uint8_t a = cpu->registers[rs1];
+            uint8_t b = cpu->registers[rs2];
+            uint16_t result = (uint16_t)a * (uint16_t)b;
+            cpu->registers[rd] = result & 0xFF;
+            cpu->OV = (result >> 8) & 0xFF;
+
+            cpu->SR = 0; 
+            if (result == 0) cpu->SR |= SR_Z;
+            if (result & 0x80) cpu->SR |= SR_N;
+            if (result > 0xFF) cpu->SR |= SR_O;
+            break;
+        }
+        case OP_DIV: {
+            uint8_t a = cpu->registers[rs1];
+            uint8_t b = cpu->registers[rs2];
+            if (b == 0) {
+                cpu->halted = 1;
+                break;
+            }
+            uint8_t result = a / b;
+            cpu->registers[rd] = result & 0xFF;
+
+            cpu->SR = 0; 
+            if (result == 0) cpu->SR |= SR_Z;
+            if (result & 0x80) cpu->SR |= SR_N;
+            break;
+        }
+        case OP_NEG: {
+            cpu->registers[rd] = (uint8_t)(-(int8_t)cpu->registers[rs1]);
+            break;
+        }
+        case OP_NOT: {
+            cpu->registers[rd] = ~cpu->registers[rs1];
+            break;
+        }
+        case OP_AND: {
+            cpu->registers[rd] = cpu->registers[rs1] & cpu->registers[rs2];
+            break;
+        }
+        case OP_OR: {
+            cpu->registers[rd] = cpu->registers[rs1] | cpu->registers[rs2];
+            break;
+        }
+        case OP_XOR: {
+            cpu->registers[rd] = cpu->registers[rs1] ^ cpu->registers[rs2];
+            break;
+        }
+        case OP_SHL: {
+            cpu->registers[rd] = cpu->registers[rs1] << imm; 
+            break;
+        }
+        case OP_SHR: {
+            cpu->registers[rd] = cpu->registers[rs1] >> imm; 
+            break;
+        }
+        case OP_ADDI: {
+            uint8_t a = cpu->registers[rs1];
+            uint16_t result = (uint16_t)a + imm;
+            cpu->registers[rd] = result & 0xFF;
+            cpu->OV = (result >> 8) & 0xFF;
+
+            cpu->SR = 0; 
+            if (result == 0) cpu->SR |= SR_Z;
+            if (result & 0x80) cpu->SR |= SR_N;
+            if (result > 0xFF) cpu->SR |= SR_O;
+            break;
+        }
+        case OP_SUBI: {
+            uint8_t a = cpu->registers[rs1];
+            uint16_t result = (uint16_t)a - imm;
+            cpu->registers[rd] = result & 0xFF;
+
+            int8_t signed_result = (int8_t)(result & 0xFF);
+            cpu->SR = 0;
+            if (signed_result == 0) cpu->SR |= SR_Z;
+            if (signed_result < 0) cpu->SR |= SR_N;
+            if ((a ^ imm) & 0x80 && (a ^ (uint8_t)result) & 0x80) cpu->SR |= SR_O;
+            break;
+        }
+        case OP_CMP: {
+            uint8_t a = cpu->registers[rs1];
+            uint8_t b = cpu->registers[rs2];
+            uint16_t result = (uint16_t)a - (uint16_t)b;
+
+            int8_t signed_result = (int8_t)(result & 0xFF);
+            cpu->SR = 0;
+            if (signed_result == 0) cpu->SR |= SR_Z;
+            if (signed_result < 0) cpu->SR |= SR_N;
+            if ((a ^ b) & 0x80 && (a ^ (uint8_t)result) & 0x80) cpu->SR |= SR_O;
+            break;
+        }
+
+
+
     }
 
 }
