@@ -1,1 +1,2 @@
-tests/test_*
+tests/test_cpu
+tests/test_assembler
