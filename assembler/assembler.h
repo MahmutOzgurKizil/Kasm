@@ -5,6 +5,7 @@
 #include <stdio.h>
 #define MAX_LABEL_LENGTH 20
 #define MAX_LABEL_COUNT 13
+#define MAX_SOURCE_LENGTH 512
 
 typedef struct {
     char name[MAX_LABEL_LENGTH];
